@@ -29,3 +29,8 @@ enable_testing()
 add_executable(unit_tests tests/test_decoder.cpp)
 target_link_libraries(unit_tests canbus_core)
 add_test(NAME unit_tests COMMAND unit_tests)
+
+if(UNIX AND NOT APPLE)
+    add_executable(canbus_decoder_live src/main_live.cpp src/socketcan_reader.cpp)
+    target_link_libraries(canbus_decoder_live canbus_core)
+endif()
