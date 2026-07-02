@@ -74,3 +74,42 @@ ctest --output-on-failure
 ## License
 
 MIT
+
+## Live mode — real SocketCAN
+
+Beyond the synthetic simulator, this project also runs against a **real Linux
+SocketCAN virtual bus**, using the same standard interface (`AF_CAN`,
+`SOCK_RAW`) that production automotive tooling like CANalyzer/CANoe or a real
+Linux ECU stack uses.
+
+### Setup (Linux only — tested on Ubuntu 26.04 via a Multipass VM on macOS)
+
+```bash
+sudo apt install -y can-utils
+sudo modprobe vcan
+sudo ip link add dev vcan0 type vcan
+sudo ip link set up vcan0
+```
+
+### Build and run the live decoder
+
+```bash
+cmake --build build --target canbus_decoder_live
+./build/canbus_decoder_live vcan0
+```
+
+### Send test frames from another shell
+
+```bash
+cansend vcan0 200#7017000000000000    # VehicleSpeed ≈ 60.0 km/h
+cansend vcan0 201#E00E000000000000    # EngineRPM ≈ 950.0 rpm
+cansend vcan0 202#01                  # DoorStatus: driver door open
+```
+
+Sample output:[0x200] VehicleSpeed=60
+
+[0x201] EngineRPM=952
+
+[0x202] DoorStatus=1This confirms the decoder correctly extracts signals from real CAN frames
+traveling over an actual Linux CAN socket, not just synthetic in-process data.
+
